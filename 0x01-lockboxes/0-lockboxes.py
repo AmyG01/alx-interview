@@ -1,24 +1,55 @@
 #!/usr/bin/python3
 
+def look_next_opened_box(opened_boxes):
+    """Looks for the next opened box
+    Args:
+        opened_boxes (dict): Dictionary containing boxes already opened
+    Returns:
+        list: List with the keys contained in the opened box
+    """
+    for index, box in opened_boxes.items():
+        if box['status'] == 'opened':
+            box['status'] = 'opened/checked'
+            return box['keys']
+    return None
+
+
 def canUnlockAll(boxes):
-    if not boxes:
-        return False
+    """Check if all boxes can be opened
+    Args:
+        boxes (list): List containing all the boxes with the keys
+    Returns:
+        bool: True if all boxes can be opened, otherwise, False
+    """
+    if not boxes or all(not box for box in boxes):
+        return True
 
-    n = len(boxes)
-    keys = [0]  # Initial keys (starting with the first box)
-    visited = set()
+    aux = {0: {'status': 'opened', 'keys': boxes[0]}}
+    
+    while True:
+        keys = look_next_opened_box(aux)
+        if keys:
+            for key in keys:
+                try:
+                    if aux.get(key) and aux[key]['status'] == 'opened/checked':
+                        continue
+                    aux[key] = {'status': 'opened', 'keys': boxes[key]}
+                except (KeyError, IndexError):
+                    continue
+        elif any(box['status'] == 'opened' for box in aux.values()):
+            continue
+        elif len(aux) == len(boxes):
+            break
+        else:
+            return False
 
-    while keys:
-        current_box = keys.pop()
-        if current_box not in visited:
-            visited.add(current_box)
-            keys.extend(boxes[current_box])
+    return len(aux) == len(boxes)
 
-    return len(visited) == n
 
-# Example usage:
-if __name__ == "__main__":
-    # Example boxes
-    boxes = [[1], [2], [3], []]
-    result = canUnlockAll(boxes)
-    print(result)  # Output: True
+def main():
+    """Entry point"""
+    canUnlockAll([[]])
+
+
+if __name__ == '__main__':
+    main()
